@@ -1,6 +1,5 @@
-NAME: ACE_0.6B_1024
+NAME: ACE_0.6B_512
 IS_DEFAULT: False
-USE_DYNAMIC_MODEL: False
 DEFAULT_PARAS:
   PARAS:
   #
@@ -10,10 +9,10 @@ DEFAULT_PARAS:
     TASK:
     PROMPT: ""
     NEGATIVE_PROMPT: ""
-    OUTPUT_HEIGHT: 1024
-    OUTPUT_WIDTH: 1024
+    OUTPUT_HEIGHT: 512
+    OUTPUT_WIDTH: 512
     SAMPLER: ddim
-    SAMPLE_STEPS: 50
+    SAMPLE_STEPS: 20
     GUIDE_SCALE: 4.5
     GUIDE_RESCALE: 0.5
     SEED: -1
@@ -67,7 +66,8 @@ MODEL:
   #
   DIFFUSION_MODEL:
     NAME: DiTACE
-    PRETRAINED_MODEL: ./experiments/FurniFlip139K/vs-bedroom-v1/exp3/checkpoints/ldm_step-37800-model.pth
+    PRETRAINED_MODEL: /home/ubuntu/Styldod-Research-Utah-H100/rohit-panda/ACE/cache/exp/exp2/checkpoints/ldm_step-500-model.pth
+    IGNORE_KEYS: [ ]
     PATCH_SIZE: 2
     IN_CHANNELS: 4
     HIDDEN_SIZE: 1152
@@ -78,7 +78,7 @@ MODEL:
     DROP_PATH: 0.0
     WINDOW_DIZE: 0
     Y_CHANNELS: 4096
-    MAX_SEQ_LEN: 4096
+    MAX_SEQ_LEN: 1024
     QK_NORM: True
     USE_GRAD_CHECKPOINT: True
     ATTENTION_BACKEND: flash_attn
@@ -86,7 +86,7 @@ MODEL:
   FIRST_STAGE_MODEL:
     NAME: AutoencoderKL
     EMBED_DIM: 4
-    PRETRAINED_MODEL: ./models/ACE-0___6B-1024px/models/vae/vae.bin
+    PRETRAINED_MODEL: ms://iic/ACE-0.6B-512px@models/vae/vae.bin
     IGNORE_KEYS: []
     #
     ENCODER:
@@ -118,8 +118,8 @@ MODEL:
   #
   COND_STAGE_MODEL:
     NAME: ACETextEmbedder
-    PRETRAINED_MODEL: ./models/ACE-0___6B-1024px/models/text_encoder/t5-v1_1-xxl/
-    TOKENIZER_PATH: ./models/ACE-0___6B-1024px/models/tokenizer/t5-v1_1-xxl
+    PRETRAINED_MODEL: ms://iic/ACE-0.6B-512px@models/text_encoder/t5-v1_1-xxl/
+    TOKENIZER_PATH: ms://iic/ACE-0.6B-512px@models/tokenizer/t5-v1_1-xxl
     LENGTH: 120
     T5_DTYPE: bfloat16
     ADDED_IDENTIFIER: [ '{image}', '{caption}', '{mask}', '{ref_image}', '{image1}', '{image2}', '{image3}', '{image4}', '{image5}', '{image6}', '{image7}', '{image8}', '{image9}' ]

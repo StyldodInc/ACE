@@ -11,14 +11,14 @@ SOLVER:
   USE_AMP: True
   DTYPE: float16
   CHANNELS_LAST: True
-  MAX_STEPS: 500
+  MAX_STEPS: 50000
   MAX_EPOCHS: -1
   NUM_FOLDS: 1
   ACCU_STEP: 1
-  EVAL_INTERVAL: 50
+  EVAL_INTERVAL: 200
   RESCALE_LR: False
   #
-  WORK_DIR: ./cache/exp/exp1
+  WORK_DIR: ./experiments/FurniFlip139K/vs-bedroom-v1/exp1
   LOG_FILE: std_log.txt
   #
   FILE_SYSTEM:
@@ -56,7 +56,7 @@ SOLVER:
     #
     DIFFUSION_MODEL:
       NAME: DiTACE
-      PRETRAINED_MODEL: ms://iic/ACE-0.6B-512px@models/dit/ace_0.6b_512px.pth
+      PRETRAINED_MODEL: ./models/ACE-0___6B-1024px/models/dit/ace_0.6b_1024px.pth
       IGNORE_KEYS: [ ]
       PATCH_SIZE: 2
       IN_CHANNELS: 4
@@ -76,7 +76,7 @@ SOLVER:
     FIRST_STAGE_MODEL:
       NAME: AutoencoderKL
       EMBED_DIM: 4
-      PRETRAINED_MODEL: ms://iic/ACE-0.6B-1024px@models/vae/vae.bin
+      PRETRAINED_MODEL: ./models/ACE-0___6B-1024px/models/vae/vae.bin
       IGNORE_KEYS: []
       #
       ENCODER:
@@ -108,8 +108,8 @@ SOLVER:
     #
     COND_STAGE_MODEL:
       NAME: T5EmbedderHF
-      PRETRAINED_MODEL: ms://iic/ACE-0.6B-1024px@models/text_encoder/t5-v1_1-xxl/
-      TOKENIZER_PATH: ms://iic/ACE-0.6B-1024px@models/tokenizer/t5-v1_1-xxl
+      PRETRAINED_MODEL: ./models/ACE-0___6B-1024px/models/text_encoder/t5-v1_1-xxl/
+      TOKENIZER_PATH: ./models/ACE-0___6B-1024px/models/tokenizer/t5-v1_1-xxl
       LENGTH: 120
       T5_DTYPE: bfloat16
       ADDED_IDENTIFIER: [ '{image}', '{caption}', '{mask}', '{ref_image}', '{image1}', '{image2}', '{image3}', '{image4}', '{image5}', '{image6}', '{image7}', '{image8}', '{image9}' ]
@@ -134,7 +134,7 @@ SOLVER:
   TRAIN_DATA:
     NAME: ACEDemoDataset
     MODE: train
-    MS_DATASET_NAME: cache/datasets/hed_pair
+    MS_DATASET_NAME: ./datasets/FurniFlip139K/vs-bedroom-v1
     MS_DATASET_NAMESPACE: ""
     MS_DATASET_SPLIT: "train"
     MS_DATASET_SUBNAME: ""
@@ -142,10 +142,24 @@ SOLVER:
     REPLACE_STYLE: False
     MAX_SEQ_LEN: 4096
     PIN_MEMORY: True
-    BATCH_SIZE: 1
-    NUM_WORKERS: 1
+    BATCH_SIZE: 16
+    NUM_WORKERS: 8
     SAMPLER:
       NAME: LoopSampler
+  #
+  EVAL_DATA:
+    NAME: ACEDemoDataset
+    MODE: eval
+    MS_DATASET_NAME: ./datasets/validation_data/bedroom
+    MS_DATASET_NAMESPACE: ""
+    MS_DATASET_SPLIT: "validation"
+    MS_DATASET_SUBNAME: ""
+    PROMPT_PREFIX: ""
+    REPLACE_STYLE: False
+    MAX_SEQ_LEN: 4096
+    PIN_MEMORY: True
+    BATCH_SIZE: 6
+    NUM_WORKERS: 3
   #
   TRAIN_HOOKS:
     -
@@ -153,10 +167,15 @@ SOLVER:
       PRIORITY: 0
     -
       NAME: LogHook
-      LOG_INTERVAL: 50
+      LOG_INTERVAL: 100
     -
       NAME: CheckpointHook
-      INTERVAL: 100
+      INTERVAL: 200
     -
       NAME: ProbeDataHook
-      PROB_INTERVAL: 100
+      PROB_INTERVAL: 200
+  #
+  EVAL_HOOKS:
+    -
+      NAME: ProbeDataHook
+      PROB_INTERVAL: 200

@@ -1,3 +1,5 @@
+########      Modified by rohit.panda on 22 Nov 2024      ############
+
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import argparse
@@ -49,11 +51,7 @@ def run_one_case(pipe, input_image, input_mask, edit_k,
         if edit_image is not None else [negative_prompt],
         output_height=output_h,
         output_width=output_w,
-        sampler=pipe.input.get("sampler", "ddim"),
-        sample_steps=pipe.input.get("sample_steps", 20),
-        guide_scale=pipe.input.get("guide_scale", 4.5),
-        guide_rescale=pipe.input.get("guide_rescale", 0.5),
-        seed=seed,
+        seed=seed
     )
     with FS.put_to(save_path) as local_path:
         imgs[0].save(local_path)
@@ -74,12 +72,12 @@ def run():
                         dest='output_h',
                         help='The height of output image for generation tasks!',
                         type=int,
-                        default=None)
+                        default=512)
     parser.add_argument('--output_w',
                         dest='output_w',
                         help='The width of output image for generation tasks!',
                         type=int,
-                        default=None)
+                        default=512)
     parser.add_argument('--input_image',
                         dest='input_image',
                         help='The input image!',
@@ -90,6 +88,10 @@ def run():
                         help='The input mask!',
                         default=None
                         )
+    parser.add_argument('--input_path'
+                        )
+    # parser.add_argument('--cfg'
+    #                     )
     parser.add_argument('--save_path',
                         dest='save_path',
                         help='The save path for output image!',
@@ -101,6 +103,7 @@ def run():
                         type=int,
                         default=-1)
     cfg = Config(load=True, parser_ins=parser)
+    # cfg = Config(load=True, cfg_file=cfg.args)
     pipe = ACEInference()
     pipe.init_from_cfg(cfg)
 
@@ -109,40 +112,19 @@ def run():
     output_w = cfg.args.output_w or pipe.input.get("output_width", 1024)
     negative_prompt = cfg.args.negative_prompt
 
-    if cfg.args.instruction == "" and cfg.args.input_image is None:
-        # run examples
-        all_examples = [
-            ["examples/input_images/example0.webp", None, "",
-             "{image} make the boy cry, his eyes filled with tears",
-             "", 199999, output_h, output_w, "examples/output_images/example0.png"],
-            ["examples/input_images/example1.webp", None, "",
-             "{image}use the depth map @cb638863a0e9 and the text caption  \"Vincent van Gogh with expressive, "
-             "soulful eyes and a gentle smile, wearing traditional 19th-century artist's attire, including a "
-             "paint-streaked smock, a straw hat with sunflowers, and an artist's easel slung over his shoulder."
-             "Subtle elements of \"Starry Night\" swirling around, with hints of sunflowers and wheat fields "
-             "from his famous paintings. Include a palette and paintbrushes, a small sun painted in the top "
-             "corner, and subtle curling patterns reminiscent of his brush strokes\" to create a image",
-             "", 899999, output_h, output_w, "examples/output_images/example1.png"],
-            ["examples/input_images/example2.webp", None, "",
-             "make this {image} colorful",
-             "", 199999, output_h, output_w, "examples/output_images/example2.png"],
-            ["examples/input_images/example3.webp", None, "",
-             "change the style to 3D cartoon style",
-             "", 2023, output_h, output_w, "examples/output_images/example3.png"],
+    # if "{image}" not in cfg.args.instruction:
+    #     instruction = "{image} " + cfg.args.instruction
+    # else:
+    instruction = cfg.args.instruction
 
-        ]
-        for example in all_examples:
-            run_one_case(pipe, example[0], example[1], example[2], example[3],
-                         example[4], example[5], example[6], example[7], example[8])
-    else:
-        if "{image}" not in cfg.args.instruction:
-            instruction = "{image} " + cfg.args.instruction
-        else:
-            instruction = cfg.args.instruction
+    os.makedirs(cfg.args.save_path, exist_ok=True)
+    all_examples = os.listdir(cfg.args.input_path)
+    for example in all_examples:
 
-        run_one_case(pipe, cfg.args.input_image, cfg.args.input_mask, "",
-                 instruction, negative_prompt, cfg.args.seed,
-                 output_h, output_w, cfg.args.save_path)
+        run_one_case(pipe, os.path.join(cfg.args.input_path, example), cfg.args.input_mask, "",
+                instruction, negative_prompt, cfg.args.seed,
+                output_h, output_w, os.path.join(cfg.args.save_path, example))
 
 if __name__ == '__main__':
     run()
+
